@@ -12,6 +12,7 @@ export default {
       },
       maxHeight: {
         '75': '75vh',
+        '90': '90vh',
       },
       height: {
         '75': '75vh',
