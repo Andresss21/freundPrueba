@@ -16,7 +16,7 @@ export default function DynamicTable({ columns, rows, title, selectable, onProdu
           </header>
           <div className="p-3">
             <div className="overflow-x-auto">
-              <table className="table-auto w-full overflow-auto">
+              <table className="table-auto w-full">
                 <thead className="text-xs font-semibold uppercase text-gray-400 bg-gray-50">
                   <tr>
                     {selectable && <th className="p-2 whitespace-nowrap">Select</th>}

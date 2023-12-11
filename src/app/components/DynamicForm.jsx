@@ -44,7 +44,7 @@ export default function DynamicForm({ inputs, onSubmit, values, onChange, formTe
   };
 
   return (
-    <form onSubmit={handleSubmit} className='!z-5 text-left relative flex flex-col rounded-[20px] max-w-[300px] md:max-w-[400px] bg-white bg-clip-border shadow-md shadow-shadow-500 flex flex-col w-full !p-6 3xl:p-![18px] bg-white undefined overflow-auto'>
+    <form onSubmit={handleSubmit} className='!z-5 text-left relative flex flex-col rounded-[20px] max-w-[300px] md:max-w-[400px] bg-white bg-clip-border shadow-md shadow-shadow-500 flex flex-col w-full !p-6 3xl:p-![18px] bg-white undefined'>
       {formText.title && (
         <h2 className='text-xl font-bold text-navy-700 text-center mb-4'>{formText.title}</h2>
       )}

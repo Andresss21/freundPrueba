@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
 import DynamicForm from '../components/DynamicForm';
-import Alert from '../components/Alert';
 import DynamicTable from '../components/DynamicTable';
 
-function AddOrder() {
+function AddOrder({ onOrderSubmitted, onShowAlert }) {
   const [clients, setClients] = useState([]);
   const [products, setProducts] = useState([]);
   const [selectedClient, setSelectedClient] = useState();
   const [selectedProducts, setSelectedProducts] = useState({});
   const [orderTotal, setOrderTotal] = useState(0);
-  const [alert, setAlert] = useState({ show: false, type: '', message: { title: '', body: '' } });
 
   useEffect(() => {
     fetchClients();
@@ -20,7 +18,7 @@ function AddOrder() {
   async function fetchClients() {
     const { data, error } = await supabase.from('clients').select('*');
     if (error) {
-      setAlert({ show: true, type: 'error', message: { title: 'Error', body: 'Error al obtener los clientes.' } });
+      onShowAlert('error', 'Error', 'Error al obtener los clientes.');
     } else {
       setClients(data);
     }
@@ -29,7 +27,7 @@ function AddOrder() {
   async function fetchProducts() {
     const { data, error } = await supabase.from('products').select('id, name, price');
     if (error) {
-      setAlert({ show: true, type: 'error', message: { title: 'Error', body: 'Error al obtener los productos.' } });
+      onShowAlert('error', 'Error', 'Error al obtener los productos.');
     } else {
       setProducts(data);
     }
@@ -67,6 +65,7 @@ function AddOrder() {
       if (orderInsertResponse.error) {
         throw orderInsertResponse.error;
       }
+
       const orderId = orderInsertResponse.data[0].id;
   
       const orderDetails = Object.keys(selectedProducts).map(productId => {
@@ -78,6 +77,7 @@ function AddOrder() {
           precio: product.price
         };
       });
+
       const detailsInsertResponse = await supabase
         .from('detalle_orden_compra')
         .insert(orderDetails);
@@ -86,16 +86,14 @@ function AddOrder() {
         throw detailsInsertResponse.error;
       }
   
-      setAlert({ show: true, type: 'success', message: { title: 'Orden Procesada', body: 'La orden se ha procesado correctamente.' } });
+      onShowAlert('success', 'Orden Procesada', 'La orden se ha procesado correctamente.');
+      onOrderSubmitted();
    
     } catch (error) {
       console.error('Error al procesar la orden:', error);
-      setAlert({ show: true, type: 'error', message: { title: 'Error', body: 'Hubo un problema al procesar la orden.' } });
+      onShowAlert('error', 'Error', 'Hubo un problema al procesar la orden.');
     }
   };
-  
-
-  
 
   const formInputs = [
     {
@@ -140,12 +138,11 @@ function AddOrder() {
     `$${product.price.toFixed(2)}`
   ]);
 
-  const title = 'Productos';
+  const title = 'Productos'
 
   return (
-    <div className="flex items-center justify-center h-90">
-      <Alert type={alert.type} message={{ title: alert.message.title, body: alert.message.body }} />
-      <div className="grid grid-cols-2 h-75 w-full max-w-screen-xl">
+    <div className="flex items-center justify-center overflow-auto">
+      <div className="grid grid-cols-2  w-full max-w-screen-xl">
       <div className="flex flex-col items-center justify-center ">
           <DynamicTable 
             columns={columns} 

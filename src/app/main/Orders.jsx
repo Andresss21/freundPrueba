@@ -1,13 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
-import DynamicForm from '../components/DynamicForm';
 import Alert from '../components/Alert';
 import DynamicTable from '../components/DynamicTable';
 import DynamicButton from '../components/common/Button';
 import AddOrder from './addOrder';
 
 function Orders() {
+  const [orders, setOrders] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [alert, setAlert] = useState({ show: false, type: '', message: { title: '', body: '' } });
+
+  const fetchOrders = async () => {
+    try {
+      let { data, error } = await supabase
+        .from('orden_compra')
+        .select(`
+          clients:cliente_id (first_name, last_name),
+          total,
+          fecha,
+          detalle_orden_compra (
+            producto:producto_id (name),
+            cantidad
+          )
+        `);
+
+      if (error) {
+        throw error;
+      }
+
+      setOrders(data);
+    } catch (error) {
+      console.error('Error al obtener las órdenes:', error.message);
+      setAlert({ show: true, type: 'error', message: { title: 'Error', body: 'Error al obtener las órdenes.' } });
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
 
   const openModal = () => {
     setIsModalOpen(true);
@@ -15,8 +45,23 @@ function Orders() {
 
   const closeModal = () => {
     setIsModalOpen(false);
+    fetchOrders();
   };
- 
+
+  const showAlert = (type, title, body) => {
+    setAlert({ show: true, type, message: { title, body } });
+  };
+
+  const columns = ['Cliente', 'Total', 'Fecha', 'Detalle'];
+  const rows = orders.map(order => [
+    `${order.clients.first_name} ${order.clients.last_name}`,
+    `$${order.total.toFixed(2)}`,
+    new Date(order.fecha).toLocaleDateString(),
+    order.detalle_orden_compra.map(d => `${d.producto.name} (${d.cantidad})`).join(', ')
+  ]);
+
+  const title = 'Órdenes';
+
   return (
     <div className="flex h-90">
       <div className="mt-10 w-full ">
@@ -25,12 +70,13 @@ function Orders() {
         </div>
         <div className="flex justify-end pr-5">
           <DynamicButton
-            buttonText= 'Agregar Orden'
+            buttonText='Agregar Orden'
             onClick={openModal}
             backgroundColor="bg-blue-200"
             transColor="bg-blue-400"
           />
         </div>
+        <DynamicTable columns={columns} rows={rows} title={title} />
       </div>
 
       {isModalOpen && (
@@ -39,10 +85,10 @@ function Orders() {
           onClick={closeModal}
         >
           <div
-            className="modal-container w-90 mx-auto rounded shadow-lg p-4"
+            className="modal-container w-90 mx-auto h-min rounded shadow-lg p-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <AddOrder />
+            <AddOrder onOrderSubmitted={closeModal} onShowAlert={showAlert} />
           </div>
         </div>
       )}
